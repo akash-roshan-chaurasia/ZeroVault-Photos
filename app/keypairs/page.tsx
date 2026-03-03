@@ -8,10 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Key, Plus, Trash2, Copy, Check, Calendar } from 'lucide-react';
+import { Key, Plus, Trash2, Copy, Check, Calendar, Download } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase, type KeyPair } from '@/lib/supabase';
-import { generateKeyPair } from '@/lib/encryption';
+import { generateKeyPair, type EncryptionKeys } from '@/lib/encryption';
 
 export default function KeyPairsPage() {
   const router = useRouter();
@@ -22,6 +22,9 @@ export default function KeyPairsPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [error, setError] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [generatedKeys, setGeneratedKeys] = useState<EncryptionKeys | null>(null);
+  const [importMode, setImportMode] = useState(false);
+  const [manualPublicKey, setManualPublicKey] = useState('');
 
   useEffect(() => {
     if (!loading && !user) {
@@ -54,29 +57,48 @@ export default function KeyPairsPage() {
       return;
     }
 
+    if (importMode && !manualPublicKey.trim()) {
+      setError('Please enter a public key to import');
+      return;
+    }
+
     setIsGenerating(true);
     setError('');
 
     try {
-      const keys = await generateKeyPair();
+      let finalPublicKey = '';
+      let generated = null;
+
+      if (importMode) {
+        finalPublicKey = manualPublicKey;
+      } else {
+        generated = await generateKeyPair();
+        finalPublicKey = generated.publicKey;
+      }
 
       const { error } = await supabase
         .from('user_keypairs')
         .insert({
           user_id: user!.id,
           keypair_name: newKeypairName,
-          public_key: keys.publicKey,
+          public_key: finalPublicKey,
         });
 
       if (error) {
         setError(error.message);
       } else {
         setNewKeypairName('');
-        setShowDialog(false);
+        setManualPublicKey('');
+        if (generated) {
+          setGeneratedKeys(generated);
+        } else {
+          setShowDialog(false);
+          setImportMode(false);
+        }
         await loadKeypairs();
       }
     } catch (err) {
-      setError('Failed to generate keypair');
+      setError('Failed to process keypair');
       console.error(err);
     } finally {
       setIsGenerating(false);
@@ -106,6 +128,19 @@ export default function KeyPairsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleDownloadPrivateKey = () => {
+    if (!generatedKeys) return;
+    const blob = new Blob([generatedKeys.privateKey], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'private_key.pem';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
@@ -127,46 +162,132 @@ export default function KeyPairsPage() {
             </p>
           </div>
 
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <Dialog open={showDialog} onOpenChange={(open) => {
+            setShowDialog(open);
+            if (!open) {
+              setGeneratedKeys(null);
+              setImportMode(false);
+              setManualPublicKey('');
+            }
+          }}>
             <DialogTrigger asChild>
               <Button size="lg">
                 <Plus className="w-4 h-4 mr-2" />
-                Generate New Keypair
+                Add New Keypair
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-xl">
               <DialogHeader>
-                <DialogTitle>Generate New Public Key</DialogTitle>
+                <DialogTitle>{generatedKeys ? 'Keypair Generated Successfully' : (importMode ? 'Import Public Key' : 'Generate New Public Key')}</DialogTitle>
                 <DialogDescription>
-                  Create a new RSA-4096 public key. Save the private key securely - it will not be stored on the server.
+                  {generatedKeys
+                    ? 'IMPORTANT: Save your private key now. It is NOT saved on our servers and cannot be recovered if lost.'
+                    : (importMode ? 'Save an existing public key to use for encryption later.' : 'Create a new RSA-4096 public key. Save the private key securely - it will not be stored on the server.')}
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="keypair-name">Keypair Name</Label>
-                  <Input
-                    id="keypair-name"
-                    placeholder="e.g., Personal Documents, Work Files"
-                    value={newKeypairName}
-                    onChange={(e) => setNewKeypairName(e.target.value)}
-                  />
-                </div>
 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
+              {generatedKeys ? (
+                <div className="space-y-4 py-4">
+                  <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                    <AlertDescription className="text-green-800 dark:text-green-200">
+                      Keypair generated! Please copy or download your private key.
+                    </AlertDescription>
                   </Alert>
-                )}
 
-                <Button
-                  onClick={handleGenerateKeypair}
-                  disabled={isGenerating}
-                  className="w-full"
-                >
-                  <Key className="w-4 h-4 mr-2" />
-                  {isGenerating ? 'Generating...' : 'Generate Keypair'}
-                </Button>
-              </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium">Private Key</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(generatedKeys.privateKey, 'private-new')}
+                        >
+                          {copiedId === 'private-new' ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
+                          Copy
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadPrivateKey}
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                    <textarea
+                      value={generatedKeys.privateKey}
+                      readOnly
+                      className="w-full font-mono text-xs h-32 p-3 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      setShowDialog(false);
+                      setGeneratedKeys(null);
+                    }}
+                    className="w-full"
+                  >
+                    I have saved my private key
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4 py-4">
+                  <div className="flex rounded-md bg-slate-100 dark:bg-slate-800 p-1 mb-4">
+                    <button
+                      className={`flex-1 text-sm font-medium py-1.5 rounded-sm transition-colors ${!importMode ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+                      onClick={() => setImportMode(false)}
+                    >
+                      Generate New
+                    </button>
+                    <button
+                      className={`flex-1 text-sm font-medium py-1.5 rounded-sm transition-colors ${importMode ? 'bg-white dark:bg-slate-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
+                      onClick={() => setImportMode(true)}
+                    >
+                      Import Existing
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="keypair-name">Keypair Name</Label>
+                    <Input
+                      id="keypair-name"
+                      placeholder="e.g., Personal Documents, Work Files"
+                      value={newKeypairName}
+                      onChange={(e) => setNewKeypairName(e.target.value)}
+                    />
+                  </div>
+
+                  {importMode && (
+                    <div className="space-y-2">
+                      <Label htmlFor="public-key-input">Public Key</Label>
+                      <textarea
+                        id="public-key-input"
+                        placeholder="Paste your public key here..."
+                        value={manualPublicKey}
+                        onChange={(e) => setManualPublicKey(e.target.value)}
+                        className="w-full font-mono text-xs h-32 p-3 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900"
+                      />
+                    </div>
+                  )}
+
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <Button
+                    onClick={handleGenerateKeypair}
+                    disabled={isGenerating}
+                    className="w-full"
+                  >
+                    <Key className="w-4 h-4 mr-2" />
+                    {isGenerating ? 'Processing...' : (importMode ? 'Save Public Key' : 'Generate Keypair')}
+                  </Button>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
@@ -181,11 +302,11 @@ export default function KeyPairsPage() {
                 No keypairs yet
               </h3>
               <p className="text-slate-600 dark:text-slate-400 mb-4">
-                Generate your first keypair to start encrypting files
+                Generate your first keypair or import a public key to start encrypting files
               </p>
               <Button onClick={() => setShowDialog(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Generate Keypair
+                Add Keypair
               </Button>
             </CardContent>
           </Card>

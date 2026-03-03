@@ -175,37 +175,35 @@ export default function EncryptPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {user && savedKeypairs.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Choose Keypair
-                </label>
-                <Select onValueChange={handleKeypairSelection}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a saved keypair or generate new" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">
-                      <div className="flex items-center gap-2">
-                        <Plus className="w-4 h-4" />
-                        Generate New Keypair
-                      </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Choose Key Source
+              </label>
+              <Select onValueChange={handleKeypairSelection} defaultValue={(user && savedKeypairs.length > 0) ? "" : "new"}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a saved keypair or generate new" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">
+                    <div className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      Generate New Keypair
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="manual">
+                    <div className="flex items-center gap-2">
+                      <Key className="w-4 h-4" />
+                      Use Existing Public Key
+                    </div>
+                  </SelectItem>
+                  {savedKeypairs.map((keypair) => (
+                    <SelectItem key={keypair.id} value={keypair.id}>
+                      {keypair.keypair_name}
                     </SelectItem>
-                    <SelectItem value="manual">
-                      <div className="flex items-center gap-2">
-                        <Key className="w-4 h-4" />
-                        Use Existing Public Key
-                      </div>
-                    </SelectItem>
-                    {savedKeypairs.map((keypair) => (
-                      <SelectItem key={keypair.id} value={keypair.id}>
-                        {keypair.keypair_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {useManualKey && (
               <div className="space-y-2">
@@ -226,7 +224,7 @@ export default function EncryptPage() {
               </div>
             )}
 
-            {(!user || useNewKeypair || (savedKeypairs.length === 0 && !user)) && (
+            {(useNewKeypair || (!useManualKey && !selectedKeypairId && savedKeypairs.length === 0)) && (
               <Button
                 onClick={handleGenerateKeys}
                 disabled={isProcessing}
