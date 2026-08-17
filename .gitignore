@@ -34,3 +34,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bolt & ide tools
+.bolt
+.bolt/
+.vscode/
+.idea/
+.gemini/
+
