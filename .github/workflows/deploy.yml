@@ -39,8 +39,8 @@ jobs:
 
       - name: Build static export
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://nubjtaftgzmzxvfjccni.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51Ymp0YWZ0Z3ptenh2ZmpjY25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMTQzOTUsImV4cCI6MjA4MDU5MDM5NX0.da0xtrAOGUJCISq7AT852VEm1MzkptrHWaqd5qI05Tc' }}
         run: npm run build
 
       - name: Upload artifact
