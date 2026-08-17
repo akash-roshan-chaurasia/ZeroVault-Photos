@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://zerovault-photos.github.io';
+  const baseUrl = 'https://akash-roshan-chaurasia.github.io/ZeroVault-Photos';
   const currentDate = new Date().toISOString();
 
   return [

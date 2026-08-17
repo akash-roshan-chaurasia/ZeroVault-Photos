@@ -4,7 +4,7 @@ import { Navigation } from '@/components/navigation';
 import { AuthProvider } from '@/lib/auth-context';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://zerovault-photos.github.io'),
+  metadataBase: new URL('https://akash-roshan-chaurasia.github.io/ZeroVault-Photos'),
   title: {
     default: 'ZeroVault Photos - Encrypted Media & File Gallery',
     template: '%s | ZeroVault Photos',
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://zerovault-photos.github.io',
+    url: 'https://akash-roshan-chaurasia.github.io/ZeroVault-Photos',
     siteName: 'ZeroVault Photos',
     title: 'ZeroVault Photos - Zero-Knowledge Encrypted Photo Gallery',
     description:
@@ -57,9 +57,9 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'WebApplication',
-      '@id': 'https://zerovault-photos.github.io/#webapp',
+      '@id': 'https://akash-roshan-chaurasia.github.io/ZeroVault-Photos/#webapp',
       'name': 'ZeroVault Photos',
-      'url': 'https://zerovault-photos.github.io',
+      'url': 'https://akash-roshan-chaurasia.github.io/ZeroVault-Photos',
       'applicationCategory': 'SecurityApplication',
       'operatingSystem': 'Any (Web Browser)',
       'browserRequirements': 'Requires JavaScript and Web Crypto API support',

@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://zerovault-photos.github.io/sitemap.xml',
+    sitemap: 'https://akash-roshan-chaurasia.github.io/ZeroVault-Photos/sitemap.xml',
   };
 }
