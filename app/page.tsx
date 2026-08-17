@@ -13,11 +13,11 @@ export default function Home() {
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-            SecureFiles
+            ZeroVault Photos
           </h1>
 
           <p className="text-xl sm:text-2xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
-            Enterprise-grade file encryption and decryption using military-standard RSA-4096 asymmetric encryption
+            Zero-knowledge photo gallery & file vault powered by RSA-4096 asymmetric encryption & AES-256-GCM
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
@@ -116,6 +116,50 @@ export default function Home() {
             </div>
           </CardContent>
         </Card>
+
+        {/* SEO & AEO FAQ Section */}
+        <div className="mt-16 space-y-6">
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-slate-100">
+            Frequently Asked Questions
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">What is ZeroVault Photos?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                ZeroVault Photos is a zero-knowledge photo gallery and file vault. It lets you encrypt photos and documents client-side using RSA-4096 and AES-256-GCM, allowing you to store them anywhere safely while viewing them in a Google Photos style media gallery.
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Is ZeroVault Photos zero-knowledge?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                Yes! Encryption and decryption take place 100% inside your web browser using the native Web Crypto API. Your private keys and unencrypted file contents are never transmitted to or stored on any server.
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">How does the encryption work?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                ZeroVault uses hybrid cryptography. Each file is encrypted with a unique 256-bit AES-GCM symmetric key, and that AES key is encrypted with your 4096-bit RSA public key. Only your private RSA key can decrypt your files.
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Can I view decrypted photos like Google Photos?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                Yes! The built-in decryption gallery includes a Google Photos style layout featuring lightbox slideshows, zoom/pan controls, touch swipe navigation, grid column adjustments, and search filters.
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

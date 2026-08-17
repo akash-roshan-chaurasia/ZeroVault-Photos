@@ -31,7 +31,7 @@ export function Navigation() {
               <Shield className="w-6 h-6 text-white" />
             </div>
             <span className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              SecureFiles
+              ZeroVault Photos
             </span>
           </Link>
 
